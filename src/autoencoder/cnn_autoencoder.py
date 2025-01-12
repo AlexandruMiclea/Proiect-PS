@@ -137,7 +137,8 @@ plt.ylabel("No of samples")
 plt.legend()
 plt.show()
 
-# # Get reconstruction loss threshold (MSE, more sensible to outliers).
+# Get reconstruction loss threshold (MSE, more sensible to outliers). 
+# (TODO move this to the TCN Autoencoder example)
 threshold = np.max(train_mae_loss)
 # print("Reconstruction error threshold: ", threshold)
 
