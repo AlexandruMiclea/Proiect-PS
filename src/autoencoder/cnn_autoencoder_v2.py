@@ -31,8 +31,11 @@ df['Date'] = pd.to_datetime(df['Date'], utc=True)
 #test_set = pd.concat([df.loc[df['Date'].dt.year == 2023], df[df['Date'].dt.year == 2024]])
 #train_set = pd.concat([df.loc[df['Date'].dt.year == 2021], df.loc[df['Date'].dt.year == 2022]])
 
-test_set = pd.concat([df.loc[df['Date'].dt.year == 2022], df.loc[df['Date'].dt.year == 2023]])
-train_set = pd.concat([df.loc[df['Date'].dt.year == 2021]])
+def get_set_by_years(years):
+    return pd.concat([df.loc[df['Date'].dt.year == x] for x in years])
+
+test_set = get_set_by_years([2022,2023,2024])
+train_set = get_set_by_years([x for x in range(2017, 2022)])
 
 #print(test_set)
 #print(train_set)
@@ -43,7 +46,8 @@ train_set = pd.concat([df.loc[df['Date'].dt.year == 2021]])
 
 # HIPERPARAMETRI
 
-SIZE_INPUT = 20 # 3 luni
+SIZE_INPUT = 90
+NUM_STD_DEV = 3
 
 #show_dataset_info(dataset)
 
@@ -99,15 +103,16 @@ x_test.resize((x_test.shape[0], x_test.shape[1],1))
 
 # model cnn autoencoder
 # padding = same adauga zero-padding a.i. dimensiunea seriei de timp dupa convolutie ramane identica
+# TODO modifica arhitectura sa fie cu temporal autoencoders
 model = keras.Sequential(
     [
         layers.Input(shape=(x_train.shape[1],x_train.shape[2])),
-        layers.Conv1D(filters=32,kernel_size=7, strides = 2, padding = "same", activation="relu"),
-        layers.Dropout(rate = 0.2),
-        layers.Conv1D(filters=12,kernel_size=7, strides = 5, padding = "same", activation="relu"),
-        layers.Conv1DTranspose(filters=12,kernel_size=7, strides = 5, padding = "same", activation="relu"),
-        layers.Dropout(rate = 0.2),
-        layers.Conv1DTranspose(filters=32,kernel_size=7, strides = 2, padding = "same", activation="relu"),
+        layers.Conv1D(filters=5,kernel_size=5, strides = 1, padding = "same", activation="relu", dilation_rate=5),
+        #layers.Dropout(rate = 0.1),
+        layers.Conv1D(filters=4,kernel_size=4, strides = 1, padding = "same", activation="relu", dilation_rate=4),
+        layers.Conv1DTranspose(filters=4,kernel_size=4, strides = 1, padding = "same", activation="relu", dilation_rate=4),
+        #layers.Dropout(rate = 0.1),
+        layers.Conv1DTranspose(filters=5,kernel_size=5, strides = 1, padding = "same", activation="relu", dilation_rate=5),
         layers.Conv1DTranspose(filters=1, kernel_size = 1, padding = "same")
     ]
 )
@@ -118,19 +123,16 @@ model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse")
 model_log = model.fit(
     x_train,
     x_train,
-    epochs=100,
+    epochs=50,
     batch_size=128,
     validation_split=0.2,
-    callbacks=[
-        keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, mode="min")
-    ],
 )
 
 plt.plot(model_log.history["loss"], label = "train loss")
 plt.plot(model_log.history["val_loss"], label = "validation loss")
 plt.show()
 
-# Luam MAE intre predictiile pe train si modelul original
+# Luam MSE intre predictiile pe train si modelul original
 x_train_pred = model.predict(x_train)
 train_mse_loss = np.mean((x_train_pred - x_train)**2, axis=1)
 
@@ -141,7 +143,7 @@ plt.legend()
 plt.show()
 
 # # Get reconstruction loss threshold (MSE, more sensible to outliers).
-threshold = np.max(train_mse_loss)
+
 # print("Reconstruction error threshold: ", threshold)
 
 # # Checking how the first sequence is learnt
@@ -149,6 +151,7 @@ plt.plot(revert_sequences(x_train))
 plt.plot(revert_sequences(x_train_pred))
 plt.show()
 
+# mse between test predictions and test gt
 x_test_pred = model.predict(x_test)
 test_mse_loss = np.mean((x_test_pred - x_test) ** 2, axis=1)
 
@@ -156,32 +159,19 @@ plt.plot(revert_sequences(x_test))
 plt.plot(revert_sequences(x_test_pred))
 plt.show()
 
-# print(volume[:INTERVAL_ZILE].std())
-
+threshold = np.mean(train_mse_loss) + NUM_STD_DEV*np.std(train_mse_loss)
 anomalies = test_mse_loss > threshold
-print("Number of anomaly samples: ", np.sum(anomalies))
-print("Indices of anomaly samples: ", np.where(anomalies))
 
-anomalous_data_indices = []
-for data_idx in range(SIZE_INPUT - 1, len(test_volume_normalized) - SIZE_INPUT + 1):
-    if np.all(anomalies[data_idx - SIZE_INPUT + 1 : data_idx]):
-        anomalous_data_indices.append(data_idx)
-
-print(anomalous_data_indices)
-
-anomalous_points = test_volume.iloc[anomalous_data_indices]
-
-print(test_set)
+anomalies = np.where(anomalies)
+anomalous_points = test_volume.iloc[anomalies[0]]
 
 if not os.path.exists('./src/autoencoder/reports/'):
     os.makedirs('./src/autoencoder/reports/')
 
-# TODO get first index of test dataset
-
-test_set.loc[[x + 5775 for x in anomalous_data_indices]].to_html('./src/autoencoder/reports/CN_auto_v2.html')
-
+first_day_test = test_set.index[0]
+test_set.loc[[x + first_day_test for x in anomalies[0]]].to_html('./src/autoencoder/reports/CN_auto_v2.html')
 
 plt.figure()
 plt.plot(test_volume)
-plt.plot(anomalous_points, color = 'r')
+plt.plot(anomalous_points, 'ro')
 plt.show()
