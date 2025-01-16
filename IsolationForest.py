@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import pickle
 
-def IsolationForest(X, nr_arbori = 100, dim_subsecventa = 216, prag_anomalie = 0.78):
+def IsolationForest(X, nr_arbori = 300, dim_subsecventa = 216, prag_anomalie = 0.80):
     N = len(X)
     dim_subsecventa = min(dim_subsecventa, N // 2)
     adancime_maxima = np.log2(dim_subsecventa)
@@ -75,6 +76,78 @@ def CreareArbore(subsecventa, adancime_curenta, adancime_maxima):
 
     return [trasatura, valoare_trasatura, subarbore_stang, subarbore_drept]
 
+
+# anii 2022 2023 2024, afisam doar 2024
+# df = pd.read_csv("datasets/NVidia_stock_history.csv")
+# df['Date'] = pd.to_datetime(df['Date'], utc=True)
+# df_filtrat = df[(df['Date'].dt.year >= 2022) & (df['Date'].dt.year <= 2024)]
+# nr_esantioane_2024 = len(df_filtrat[df_filtrat['Date'].dt.year == 2024])
+# valori = df_filtrat["Volume"].values.reshape(-1, 1)
+# rezultat = IsolationForest(valori)
+#
+#
+# plt.figure(figsize=(14, 7))
+# valori = valori[-nr_esantioane_2024:]
+# rezultat = rezultat[-nr_esantioane_2024:]
+#
+# indici_anomalii = []
+# for i in range(len(valori)):
+#     if rezultat[i] == 1:
+#         indici_anomalii.append(i)
+# plt.plot(valori, label="serie timp")
+# plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
+# plt.legend()
+# plt.savefig("IsolationForest_images/trasatura_Volume_2022-2024.pdf", format="pdf")
+# plt.show()
+#
+# with open("anomalii.pkl", "wb") as f:
+#     pickle.dump(indici_anomalii, f)
+
+#TOT DATASETUL TESTAT PE  TRASATURA "Close"
+df = pd.read_csv("datasets/NVidia_stock_history.csv")
+valori = df["Close"].values.reshape(-1, 1)
+
+rezultat = IsolationForest(valori)
+
+plt.figure(figsize=(14, 7))
+indici_anomalii = []
+for i in range(len(valori)):
+    if rezultat[i] == 1:
+        indici_anomalii.append(i)
+plt.plot(valori, label="serie timp")
+plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
+plt.legend()
+plt.savefig("IsolationForest_images/trasatura_Close.pdf", format="pdf")
+plt.show()
+
+
+
+# TOT DATASETUL TESTAT CU MULTIPLE CARACTERISTICI
+# date1 = pd.read_csv("datasets/NVidia_stock_history.csv")
+# date = date1[5700:5900]
+# valori = date[["Open", "High", "Low", "Close"]].values
+#
+# rezultat_IF = IsolationForest(valori)
+#
+# # interval_stanga = 5000
+# # interval_dreapta = 6000
+#
+# plt.figure(figsize=(14, 7))
+#
+# plt.plot(date["Close"], label="Close", color="blue")
+# plt.plot(date["Open"], label="Open", color="green")
+# plt.plot(date["High"], label="High", color="orange")
+# plt.plot(date["Low"], label="Low", color="purple")
+#
+# for i in range(len(rezultat_IF)):
+#     if rezultat_IF[i] == 1:
+#         plt.axvline(x= i + 5700, color='red', linestyle='--', linewidth=1)
+#
+# plt.legend()
+# plt.savefig("IsolationForest_images/toate_trasaturile.pdf", format="pdf")
+# plt.show()
+
+
 # X = np.array([1.2, 2.5, 3.1, 4.7, 5.0, 100.0, 2.3, 1.9])
 # X = X.reshape(-1, 1)
 #
@@ -93,41 +166,3 @@ def CreareArbore(subsecventa, adancime_curenta, adancime_maxima):
 #
 # scoruri = IsolationForest(valori_normal)
 # print(scoruri[29], scoruri[50], scoruri[75])
-
-# df = pd.read_csv("datasets/NVidia_stock_history.csv")
-# valori = df["Close"].values.reshape(-1, 1)
-#
-# rezultat = IsolationForest(valori)
-#
-# plt.figure(figsize=(14, 7))
-# indici_anomalii = []
-# for i in range(len(valori)):
-#     if rezultat[i] == 1:
-#         indici_anomalii.append(i)
-# plt.plot(valori, label="serie timp")
-# plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
-# plt.legend()
-# plt.show()
-
-date = pd.read_csv("datasets/NVidia_stock_history.csv")
-valori = date[["Open", "High", "Low", "Close"]].values
-
-rezultat_IF = IsolationForest(valori)
-
-interval_stanga = 5000
-interval_dreapta = 6000
-
-plt.figure(figsize=(14, 7))
-
-plt.plot(date["Close"][interval_stanga: interval_dreapta], label="Close", color="blue")
-plt.plot(date["Open"][interval_stanga: interval_dreapta], label="Open", color="green")
-plt.plot(date["High"][interval_stanga: interval_dreapta], label="High", color="orange")
-plt.plot(date["Low"][interval_stanga: interval_dreapta], label="Low", color="purple")
-
-for i in range(interval_stanga, interval_dreapta):
-    if rezultat_IF[i] == 1:
-        plt.axvline(x=i, color='red', linestyle='--', linewidth=1)
-
-plt.legend()
-plt.savefig("IsolationForest_images/toate_trasaturile.pdf", format="pdf")
-plt.show()
