@@ -13,3 +13,5 @@
  - [Timeseries anomaly detection using an Autoencoder (keras.io)](https://keras.io/examples/timeseries/timeseries_anomaly_detection/)
 
  - [Temporal Convolutional Networks (youtube.com - Markus Thill)](https://www.youtube.com/watch?v=PjI4fpcTGFY)
+
+ - [Principal Component Analysis for Time Series (Medium - @heyamit10)](https://medium.com/@heyamit10/principal-component-analysis-for-time-series-99a5d5eddac9)
