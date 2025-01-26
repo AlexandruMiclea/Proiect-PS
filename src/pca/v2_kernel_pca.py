@@ -1,5 +1,3 @@
-VERSION = "v2"
-
 import os
 import numpy as np
 import pandas as pd
@@ -8,6 +6,9 @@ import pickle
 
 # HIPERPARAMETRI
 
+VERSION = "v2"
+GAMMA = 1
+COMPONENT_NO = [1]
 NUM_STD_DEV = 1
 
 # metoda care imi genereaza matricea kernel rbf pentru setul de date
@@ -22,8 +23,6 @@ def rbf_kernel(df, gamma):
             matrix[i,j] = np.linalg.norm(df[i] - df[j], ord = 2)**2
 
     matrix = np.exp(-gamma * matrix)
-
-    print(matrix.shape)
 
     return matrix
 
@@ -59,38 +58,22 @@ for x in test_set.keys():
 test_set_np = test_set.to_numpy()
 
 # obtin matricea kernel pentru seria mea de timp
-matrice_kernel = rbf_kernel(test_set_np, 1)
+matrice_kernel = rbf_kernel(test_set_np, GAMMA)
 
-# centrez matricea precen
 matrice_centrata = center_kernel(matrice_kernel)
-print(matrice_centrata.mean())
 
-#cov_matrix = np.cov(matrice_centrata)
-
-# folosesc eigh deoarece matricea de covarianta este real simetrica
+# folosesc eigh deoarece matricea kernel centrata este real simetrica
 eigvals, eigvecs = np.linalg.eigh(matrice_centrata)
 
 plt.figure()
-plt.title('Scree diagram')
+plt.title(f'Scree diagram (gamma = {GAMMA})')
 plt.plot(np.sort(eigvals)[::-1], label = 'Eigvals (sorted desc)')
 plt.legend()
-plt.savefig(f"./src/pca/plots/{VERSION}_scree.svg", format='svg')
-
-plt.figure()
-plt.title('Scree diagram - log scale')
-plt.plot(np.sort(eigvals)[::-1], label = 'Eigvals (sorted desc)')
-plt.legend()
-plt.yscale('log')
-plt.savefig(f"./src/pca/plots/{VERSION}_scree_log.svg", format='svg')
-
-# pe scala logaritmica nu exista un "cot"
-# pe scala normala undeva in jurul a 25 de componente sunt necesare
-# (am luat si 13 ca sa experimentez)
+plt.savefig(f"./src/pca/plots/{VERSION}_scree_{GAMMA}.svg", format='svg')
 
 sorted_indices = np.argsort(eigvals)[::-1]
 
-#for i in [1,4]:
-for i in [1,4,13,25]:
+for i in COMPONENT_NO:
 
     # iau cei mai relevanti eigenvectors
     best_eigvec = eigvecs[:,sorted_indices[:i]]
@@ -107,6 +90,7 @@ for i in [1,4,13,25]:
     plt.title(f"Comparatie intre y si y_rec (PCA({i}))")
     plt.plot(test_set_rebuilt['Volume'], label = "Valori obtinute dupa reducerea dimensionalitatii", linestyle = 'dashed')
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], test_set['Volume'], label = "Valori originale volum (normalizate)")
+    plt.savefig(f"./src/pca/plots/{VERSION}_y_vs_y_rec_PCA({i})_gamma_{GAMMA}.svg", format='svg')
     plt.legend()
 
     absolute_difference = np.abs(test_set['Volume'].to_numpy() - test_set_rebuilt['Volume'].to_numpy())
@@ -121,7 +105,7 @@ for i in [1,4,13,25]:
     anomaly_points = np.where(absolute_difference >= threshold)
     anomaly_points += test_set['Volume'].index[0]
 
-    with open(f'./src/pca/pickles/{VERSION}_anomalous_points_PCA({i}).pkl', 'wb') as pickle_file:
+    with open(f'./src/pca/pickles/{VERSION}_anomalous_points_PCA({i})_gamma_{GAMMA}.pkl', 'wb') as pickle_file:
         pickle.dump(anomaly_points, pickle_file)
 
     plt.figure()
@@ -129,7 +113,7 @@ for i in [1,4,13,25]:
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], absolute_difference, label = 'Diferenta in modul')
     plt.hlines(mean_absdif, 0, absolute_difference.shape[0], label = 'Media diferentelor', linestyles='solid', color = 'blue')
     plt.hlines(threshold, 0, absolute_difference.shape[0], label = f'Threshold (medie + {NUM_STD_DEV}*std)', linestyles='dashed', color = 'black')
-    plt.savefig(f"./src/pca/plots/{VERSION}_diferenta_modul_PCA({i}).svg", format='svg')
+    plt.savefig(f"./src/pca/plots/{VERSION}_diferenta_modul_PCA({i})_gamma_{GAMMA}.svg", format='svg')
     plt.legend()
 
     plt.figure()
@@ -137,6 +121,6 @@ for i in [1,4,13,25]:
     plt.plot(test_set['Volume'], label = 'Volumul observat intr-o zi')
     plt.plot(test_set['Volume'].loc[anomaly_points[0]], 'ro', label = 'Punct de anomalie')
     plt.legend()
-    plt.savefig(f"./src/pca/plots/{VERSION}_anomalii_detectate_PCA({i}).svg", format='svg')
+    plt.savefig(f"./src/pca/plots/{VERSION}_anomalii_detectate_PCA({i})_gamma_{GAMMA}.svg", format='svg')
 
 plt.show()

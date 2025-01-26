@@ -54,7 +54,6 @@ plt.savefig(f"./src/pca/plots/{VERSION}_scree_log.svg", format='svg')
 
 sorted_indices = np.argsort(eigvals)[::-1]
 
-#for i in [1,4]:
 for i in [1,4]:
 
     # iau cei mai relevanti eigenvectors
@@ -72,6 +71,7 @@ for i in [1,4]:
     plt.title(f"Comparatie intre y si y_rec (PCA({i}))")
     plt.plot(test_set_rebuilt['Volume'], label = "Valori obtinute dupa reducerea dimensionalitatii", linestyle = 'dashed')
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], test_set['Volume'], label = "Valori originale volum (normalizate)")
+    plt.savefig(f"./src/pca/plots/{VERSION}_y_vs_y_rec_PCA({i}).svg", format='svg')
     plt.legend()
 
     absolute_difference = np.abs(test_set['Volume'].to_numpy() - test_set_rebuilt['Volume'].to_numpy())
