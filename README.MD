@@ -15,3 +15,7 @@
  - [Temporal Convolutional Networks (youtube.com - Markus Thill)](https://www.youtube.com/watch?v=PjI4fpcTGFY)
 
  - [Principal Component Analysis for Time Series (Medium - @heyamit10)](https://medium.com/@heyamit10/principal-component-analysis-for-time-series-99a5d5eddac9)
+
+ - [Unleashing the Power of Kernel PCA (Medium - @khwabkalra1)](https://medium.com/@khwabkalra1/unleashing-the-power-of-kernel-pca-bce7f4d2923d)
+
+ - [Centering matrix (Wikipedia)](https://en.wikipedia.org/wiki/Centering_matrix)
