@@ -13,11 +13,11 @@ NUM_STD_DEV = 1
 df = pd.read_csv("./datasets/NVidia_stock_history.csv")
 df['Date'] = pd.to_datetime(df['Date'], utc=True)
 
-if not os.path.exists('./src/autoencoder/plots/'):
-    os.makedirs('./src/autoencoder/plots/')
+if not os.path.exists('./src/pca/plots/'):
+    os.makedirs('./src/pca/plots/')
 
-if not os.path.exists('./src/autoencoder/pickles/'):
-    os.makedirs('./src/autoencoder/pickles/')
+if not os.path.exists('./src/pca/pickles/'):
+    os.makedirs('./src/pca/pickles/')
 
 def get_set_by_years(years):
 
@@ -49,36 +49,38 @@ plt.legend()
 plt.yscale('log')
 plt.savefig(f"./src/pca/plots/{VERSION}_scree_log.svg", format='svg')
 
-# pe scala logaritmica punctul de inflexiune de afla la 4, pe scala normala punctul de inflexiune
+# pe scala logaritmica punctul de inflexiune se afla la 4, pe scala normala punctul de inflexiune
 # apare la 1, facem PCA pastrand 1 si 4 dimensiuni
 
 sorted_indices = np.argsort(eigvals)[::-1]
 
+#for i in [1,4]:
 for i in [1,4]:
 
     # iau cei mai relevanti eigenvectors
     best_eigvec = eigvecs[:,sorted_indices[:i]]
 
+    print(test_set.shape)
+
     # proiectam seria de timp aferenta volumului in subspatiul iD
-    test_set_vol_projected = test_set['Volume'] @ best_eigvec
+    test_set_projected = test_set.T @ best_eigvec
 
     # reproiectam seria de timp in spatiul original
-    test_set_vol_rebuilt = test_set_vol_projected * best_eigvec
-    test_set_vol_rebuilt = np.sum(test_set_vol_rebuilt, axis = 1)
+    test_set_rebuilt = (test_set_projected @ best_eigvec.T).T
 
     plt.figure()
     plt.title(f"Comparatie intre y si y_rec (PCA({i}))")
-    plt.plot(test_set_vol_rebuilt, label = "Valori obtinute dupa reducerea dimensionalitatii", linestyle = 'dashed')
+    plt.plot(test_set_rebuilt['Volume'], label = "Valori obtinute dupa reducerea dimensionalitatii", linestyle = 'dashed')
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], test_set['Volume'], label = "Valori originale volum (normalizate)")
     plt.legend()
 
-    absolute_difference = np.abs(test_set['Volume'] - test_set_vol_rebuilt)
+    absolute_difference = np.abs(test_set['Volume'].to_numpy() - test_set_rebuilt['Volume'].to_numpy())
 
     # fac media si deviatia standard
     mean_absdif = np.mean(absolute_difference)
     std_absdif = np.std(absolute_difference)
 
-    # threshold-ul peste care se considera ca am anomalie vs zgomot
+    # threshold-ul peste care se considera ca am anomalie vs normal behaviour
     threshold = mean_absdif + NUM_STD_DEV*std_absdif
 
     anomaly_points = np.where(absolute_difference >= threshold)
