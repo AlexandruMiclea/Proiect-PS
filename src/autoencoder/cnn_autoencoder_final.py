@@ -13,7 +13,6 @@ from keras import layers
 from keras import backend as K
 from matplotlib import pyplot as plt
 import pickle
-from show_dataset import *
 
 # HIPERPARAMETRI
 
@@ -120,7 +119,7 @@ model_log = model.fit(
     callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = 5, start_from_epoch = 10)]
 )
 
-plt.figure()
+plt.figure(figsize=(19.20, 10.80))
 plt.title("Statistici antrenare")
 plt.plot(model_log.history["loss"], label = "Loss antrenare")
 plt.plot(model_log.history["val_loss"], label = "Loss validare")
@@ -132,7 +131,7 @@ plt.savefig("./src/autoencoder/plots/train_stats.svg", format='svg')
 x_test_pred = model.predict(x_test)
 x_test_pred = revert_sequences(x_test_pred)
 
-plt.figure()
+plt.figure(figsize=(19.20, 10.80))
 plt.title("Comparatie intre y si y_pred")
 plt.plot(revert_sequences(x_test), label = "Valori prezise", linestyle = 'dashed')
 plt.plot(x_test_pred, label = "Valori GT")
@@ -149,7 +148,7 @@ std_absdif = np.std(absolute_difference)
 # threshold-ul peste care se considera ca am anomalie vs zgomot
 threshold = mean_absdif + NUM_STD_DEV*std_absdif
 
-plt.figure()
+plt.figure(figsize=(19.20, 10.80))
 plt.title('Diferenta in modul intre test si test_pred')
 plt.plot(absolute_difference, label = 'Diferenta in modul')
 plt.hlines(mean_absdif, 0, absolute_difference.shape[0], label = 'Media diferentelor', linestyles='solid', color = 'blue')
@@ -192,7 +191,7 @@ if not os.path.exists('./src/autoencoder/reports/'):
 # afisez date despre indicele bursier in zilele in care am detectat anomalie
 test_set.loc[[x for x in anomalous_points]].to_html('./src/autoencoder/reports/CN_auto_v4.html')
 
-plt.figure()
+plt.figure(figsize=(19.20, 10.80))
 plt.title('Anomalii detectate')
 plt.plot(test_set['Volume'], label = 'Volumul observat intr-o zi')
 plt.plot(anomalous_points, test_set['Volume'].loc[anomalous_points], 'ro', label = 'Punct de anomalie')

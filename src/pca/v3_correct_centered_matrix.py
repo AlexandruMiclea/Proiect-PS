@@ -6,9 +6,9 @@ import pickle
 
 # HIPERPARAMETRI
 
-VERSION = "v2"
-GAMMA = 1
-COMPONENT_NO = [20]
+VERSION = "v3"
+GAMMA = 0.1
+COMPONENT_NO = [7]
 NUM_STD_DEV = 1
 
 # metoda care imi genereaza matricea kernel rbf pentru setul de date
@@ -29,9 +29,9 @@ def rbf_kernel(df, gamma):
 # metoda care imi centreaza matricea kernel furnizata ca parametru
 def center_kernel(matrix):
     N = matrix.shape[0]
-    center_matrix = np.identity(N) - 1/N * np.ones((N,N))
+    n_1 = np.ones((N,N)) / N
 
-    result_matrix = matrix @ center_matrix
+    result_matrix = matrix - matrix @ n_1 - n_1 @ matrix + n_1 @ matrix @ n_1
 
     return result_matrix
 
@@ -65,7 +65,7 @@ matrice_centrata = center_kernel(matrice_kernel)
 # folosesc eigh deoarece matricea kernel centrata este real simetrica
 eigvals, eigvecs = np.linalg.eigh(matrice_centrata)
 
-plt.figure()
+plt.figure(figsize=(19.20, 10.80))
 plt.title(f'Scree diagram (gamma = {GAMMA})')
 plt.plot(np.sort(eigvals)[::-1], label = 'Eigvals (sorted desc)')
 plt.legend()
@@ -84,7 +84,7 @@ for i in COMPONENT_NO:
     # reproiectam seria de timp in spatiul original
     test_set_rebuilt = (test_set_projected @ best_eigvec.T).T
 
-    plt.figure()
+    plt.figure(figsize=(19.20, 10.80))
     plt.title(f"Comparatie intre y si y_rec (PCA({i}))")
     plt.plot(test_set_rebuilt['Volume'], label = "Valori obtinute dupa reducerea dimensionalitatii", linestyle = 'dashed')
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], test_set['Volume'], label = "Valori originale volum (normalizate)")
@@ -106,7 +106,7 @@ for i in COMPONENT_NO:
     with open(f'./src/pca/pickles/{VERSION}_anomalous_points_PCA({i})_gamma_{GAMMA}.pkl', 'wb') as pickle_file:
         pickle.dump(anomaly_points, pickle_file)
 
-    plt.figure()
+    plt.figure(figsize=(19.20, 10.80))
     plt.title(f'Diferenta in modul intre y si y_rec (PCA({i}))')
     plt.plot(test_set['Volume'].keys() - test_set['Volume'].index[0], absolute_difference, label = 'Diferenta in modul')
     plt.hlines(mean_absdif, 0, absolute_difference.shape[0], label = 'Media diferentelor', linestyles='solid', color = 'blue')
@@ -114,7 +114,7 @@ for i in COMPONENT_NO:
     plt.savefig(f"./src/pca/plots/{VERSION}_diferenta_modul_PCA({i})_gamma_{GAMMA}.svg", format='svg')
     plt.legend()
 
-    plt.figure()
+    plt.figure(figsize=(19.20, 10.80))
     plt.title(f'Anomalii detectate (PCA({i}))')
     plt.plot(test_set['Volume'], label = 'Volumul observat intr-o zi')
     plt.plot(test_set['Volume'].loc[anomaly_points[0]], 'ro', label = 'Punct de anomalie')
