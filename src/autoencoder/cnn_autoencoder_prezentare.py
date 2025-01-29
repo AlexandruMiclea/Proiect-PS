@@ -97,7 +97,6 @@ x_test = test_volume
 x_test.resize((x_test.shape[0], x_test.shape[1], 1))
 
 #model cnn autoencoder
-#padding = same adauga zero-padding a.i. dimensiunea seriei de timp ramane neafectata de convolutie
 
 # TODO reteaua asta s-a vrut a fi undercomplete, insa e overcomplete (am 60 de linii si o coloana, filtrele de convolutie nu se aplica bine)
 # in mijloc dimensiunea e (60, 20) ceea ce creste dimensiunea fata de input

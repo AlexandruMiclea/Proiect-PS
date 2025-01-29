@@ -2,7 +2,7 @@
 
 - Catalina Nica, 334
 - Petre-Soldan Adela, 331
-- Miclea Alexandru, 331
+- Alexandru Miclea, 331
 
 # Resources
 
@@ -19,3 +19,5 @@
  - [Unleashing the Power of Kernel PCA (Medium - @khwabkalra1)](https://medium.com/@khwabkalra1/unleashing-the-power-of-kernel-pca-bce7f4d2923d)
 
  - [Centering matrix (Wikipedia)](https://en.wikipedia.org/wiki/Centering_matrix)
+
+ - [What exactly is the procedure to compute principal components in kernel PCA? (Stack Overflow)](https://stats.stackexchange.com/questions/131140/what-exactly-is-the-procedure-to-compute-principal-components-in-kernel-pca)

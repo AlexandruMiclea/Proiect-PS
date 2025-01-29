@@ -31,7 +31,7 @@ for x in test_set.keys():
 
 test_set_np = test_set.to_numpy()
 
-cov_matrix = np.cov(test_set_np)
+cov_matrix = test_set_np @ test_set_np.T / test_set_np.shape[0]
 
 # folosesc eigh deoarece matricea de covarianta este real simetrica
 eigvals, eigvecs = np.linalg.eigh(cov_matrix)
@@ -54,7 +54,7 @@ plt.savefig(f"./src/pca/plots/{VERSION}_scree_log.svg", format='svg')
 
 sorted_indices = np.argsort(eigvals)[::-1]
 
-for i in [1,4]:
+for i in [1,2]:
 
     # iau cei mai relevanti eigenvectors
     best_eigvec = eigvecs[:,sorted_indices[:i]]

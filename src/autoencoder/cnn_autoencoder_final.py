@@ -108,15 +108,15 @@ model = keras.Sequential(
     ]
 )
 model.summary()
-model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.01), loss="mae")
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.1), loss="mae")
 
 model_log = model.fit(
     x_train,
     x_train,
-    epochs=200,
+    epochs=50,
     batch_size=128,
     validation_split=0.2,
-    callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = 5, start_from_epoch = 10)]
+    callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = 10, start_from_epoch = 10)]
 )
 
 plt.figure(figsize=(19.20, 10.80))
@@ -133,8 +133,8 @@ x_test_pred = revert_sequences(x_test_pred)
 
 plt.figure(figsize=(19.20, 10.80))
 plt.title("Comparatie intre y si y_pred")
-plt.plot(revert_sequences(x_test), label = "Valori prezise", linestyle = 'dashed')
-plt.plot(x_test_pred, label = "Valori GT")
+plt.plot(revert_sequences(x_test), label = "Valori GT", linestyle = 'dashed')
+plt.plot(x_test_pred, label = "Valori prezise")
 plt.legend()
 plt.savefig("./src/autoencoder/plots/y_vs_ypred.svg", format='svg')
 
