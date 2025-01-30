@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import time
 from sklearn.preprocessing import MinMaxScaler
+
 def Positional_Encoding(dim_subsecventa, dim_embedding):
     factori_scalare = np.array([1 / (10000 ** (2 * (pozitie_embedding // 2) / dim_embedding)) for pozitie_embedding in range(dim_embedding)])  # (1, dim_embedding)
     pozitii_initiale = np.array([[p] for p in range(dim_subsecventa)])  # (dim_subsecventa, 1)
@@ -67,7 +68,7 @@ def Transformer(dim_subsecventa, dim_embedding, nr_encoders, dim_feed_forward):
     layer_medie_pe_subsecvente = layers.GlobalAveragePooling1D()(layers_encoder)
     # pt a returna o singura val, adica predictia urm, trb sa folosim toate informatiile acumulate
     layer_final = layers.Dense(1)(layer_medie_pe_subsecvente)
-    # layer final cu un singur neuron la iesire, 1 * dim = 1 valoare
+
     return Model(tensor_intrare, layer_final)
 
 
