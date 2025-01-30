@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import time
+from sklearn.preprocessing import MinMaxScaler
 def Positional_Encoding(dim_subsecventa, dim_embedding):
     factori_scalare = np.array([1 / (10000 ** (2 * (pozitie_embedding // 2) / dim_embedding)) for pozitie_embedding in range(dim_embedding)])  # (1, dim_embedding)
     pozitii_initiale = np.array([[p] for p in range(dim_subsecventa)])  # (dim_subsecventa, 1)
@@ -21,7 +22,8 @@ def Positional_Encoding(dim_subsecventa, dim_embedding):
 def Self_Attention(layer_precedent, dim_embedding):
     # Q = ce informatie cauta un esantion de la altele, K = ce informatie detine fiecare, V = informatie deitnuta in detaliu
     Q = layers.Dense(dim_embedding)(layer_precedent)
-    # transofrmam datele din vectorul de embedding pentru a aprofunda informatia deja existenta
+    #print(Q.shape)
+    # transofrmam datele din stratul precedent pentru dea aprofunda informatia deja existenta
     K = layers.Dense(dim_embedding)(layer_precedent)
     V = layers.Dense(dim_embedding)(layer_precedent)
 
@@ -76,10 +78,13 @@ dim_feed_forward = 256
 
 df = pd.read_csv("datasets/NVidia_stock_history.csv")
 df['Date'] = pd.to_datetime(df['Date'], utc=True)
-df_filtrat = df[(df['Date'].dt.year >= 2022) & (df['Date'].dt.year <= 2024)]
+df_filtrat = df[(df['Date'].dt.year >= 2015) & (df['Date'].dt.year <= 2024)]
 valori = df_filtrat[["Open", "High", "Low", "Close"]].values
-low_values = df_filtrat["High"].values
-serie_timp = np.array(low_values)
+valori = np.array(df_filtrat["High"].values)
+scaler = MinMaxScaler()
+valori = scaler.fit_transform(valori.reshape(-1, 1)).flatten()
+
+serie_timp = np.array(valori)
 N = len(serie_timp)
 X = np.array([serie_timp[i:i + dim_subsecventa] for i in range(N - dim_subsecventa)])
 y = serie_timp[dim_subsecventa:]
@@ -102,6 +107,8 @@ print(f"Antrenarea a durat: {difference_time:.4f} secunde.")
 
 start_time = time.time()
 predictions = model.predict(X_test)
+predictions = scaler.inverse_transform(predictions.reshape(-1, 1)).flatten()
+y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
 end_time = time.time()
 difference_time = end_time - start_time
 print(f"Testarea a durat: {difference_time:.4f} secunde.")
@@ -115,13 +122,13 @@ z_scores = (erori - media) / dev_standard
 prag = 2
 indici_anomalii = np.where((z_scores > prag) | (z_scores < -prag))[0]
 
-# plt.figure(figsize=(14, 7))
-# plt.plot(y_test, label='Semnal Real', color='blue')
-# plt.plot(predictions, label='Predicții', color='red', linestyle='--')
-# plt.scatter(indici_anomalii, y_test[indici_anomalii], color='yellow', s=50, label='Anomalii', marker='o')
-# plt.legend()
-# plt.savefig("Transformer_images/detectie_anomalii.pdf", format="pdf")
-# plt.show()
+plt.figure(figsize=(14, 7))
+plt.plot(y_test, label='Semnal Real', color='blue')
+plt.plot(predictions, label='Predicții', color='red', linestyle='--')
+plt.scatter(indici_anomalii, y_test[indici_anomalii], color='yellow', s=50, label='Anomalii', marker='o')
+plt.legend()
+plt.savefig("Transformer_images/detectie_anomalii.pdf", format="pdf")
+plt.show()
 
 # #
 # # # Detectie anomalii pe serie cu componente aleatoare
