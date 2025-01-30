@@ -2,12 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
-
+import time
 def IsolationForest(X, nr_arbori = 300, dim_subsecventa = 216, prag_anomalie = 0.80):
+    print("Incepe antrenarea")
+    start_time = time.time()
     N = len(X)
     dim_subsecventa = min(dim_subsecventa, N // 2)
     adancime_maxima = np.log2(dim_subsecventa)
     subsecvente = []
+
 
     for i in range(nr_arbori):
         indici_alesi = np.random.choice(N, size=dim_subsecventa, replace=False)
@@ -17,6 +20,11 @@ def IsolationForest(X, nr_arbori = 300, dim_subsecventa = 216, prag_anomalie = 0
     for subsecventa in subsecvente:
         padure.append((subsecventa, CreareArbore(subsecventa, 0, adancime_maxima)))
 
+    end_time = time.time()
+    difference_time = end_time - start_time
+    print(f"Antrenarea a durat: {difference_time:.4f} secunde.")
+
+    start_time = time.time()
     H_N = np.log(N - 1) + 0.577215
     constanta_normalizare = 2 * H_N - (2 * (N - 1) / N)
     scoruri_anomalie = []
@@ -35,8 +43,11 @@ def IsolationForest(X, nr_arbori = 300, dim_subsecventa = 216, prag_anomalie = 0
             rezultat.append(1)
         else:
             rezultat.append(0)
-        print(adancime_medie, constanta_normalizare, 2 ** (-(adancime_medie / constanta_normalizare)))
+        #print(adancime_medie, constanta_normalizare, 2 ** (-(adancime_medie / constanta_normalizare)))
 
+    end_time = time.time()
+    difference_time = end_time - start_time
+    print(f"Testarea a durat: {difference_time:.4f} secunde.")
     #return scoruri_anomalie
     return rezultat
 
@@ -78,38 +89,18 @@ def CreareArbore(subsecventa, adancime_curenta, adancime_maxima):
 
 
 # anii 2022 2023 2024, afisam doar 2024
-# df = pd.read_csv("datasets/NVidia_stock_history.csv")
-# df['Date'] = pd.to_datetime(df['Date'], utc=True)
-# df_filtrat = df[(df['Date'].dt.year >= 2022) & (df['Date'].dt.year <= 2024)]
-# nr_esantioane_2024 = len(df_filtrat[df_filtrat['Date'].dt.year == 2024])
-# valori = df_filtrat["Volume"].values.reshape(-1, 1)
-# rezultat = IsolationForest(valori)
-#
-#
-# plt.figure(figsize=(14, 7))
-# valori = valori[-nr_esantioane_2024:]
-# rezultat = rezultat[-nr_esantioane_2024:]
-#
-# indici_anomalii = []
-# for i in range(len(valori)):
-#     if rezultat[i] == 1:
-#         indici_anomalii.append(i)
-# plt.plot(valori, label="serie timp")
-# plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
-# plt.legend()
-# plt.savefig("IsolationForest_images/trasatura_Volume_2022-2024.pdf", format="pdf")
-# plt.show()
-#
-# with open("anomalii.pkl", "wb") as f:
-#     pickle.dump(indici_anomalii, f)
-
-#TOT DATASETUL TESTAT PE  TRASATURA "Close"
 df = pd.read_csv("datasets/NVidia_stock_history.csv")
-valori = df["Close"].values.reshape(-1, 1)
-
+df['Date'] = pd.to_datetime(df['Date'], utc=True)
+df_filtrat = df[(df['Date'].dt.year >= 2022) & (df['Date'].dt.year <= 2024)]
+nr_esantioane_2024 = len(df_filtrat[df_filtrat['Date'].dt.year == 2024])
+valori = df_filtrat["Volume"].values.reshape(-1, 1)
 rezultat = IsolationForest(valori)
 
+
 plt.figure(figsize=(14, 7))
+valori = valori[-nr_esantioane_2024:]
+rezultat = rezultat[-nr_esantioane_2024:]
+
 indici_anomalii = []
 for i in range(len(valori)):
     if rezultat[i] == 1:
@@ -117,8 +108,28 @@ for i in range(len(valori)):
 plt.plot(valori, label="serie timp")
 plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
 plt.legend()
-plt.savefig("IsolationForest_images/trasatura_Close.pdf", format="pdf")
+plt.savefig("IsolationForest_images/trasatura_Volume_2022-2024.pdf", format="pdf")
 plt.show()
+#
+# with open("anomalii.pkl", "wb") as f:
+#     pickle.dump(indici_anomalii, f)
+
+#TOT DATASETUL TESTAT PE  TRASATURA "Close"
+# df = pd.read_csv("datasets/NVidia_stock_history.csv")
+# valori = df["Close"].values.reshape(-1, 1)
+#
+# rezultat = IsolationForest(valori)
+#
+# plt.figure(figsize=(14, 7))
+# indici_anomalii = []
+# for i in range(len(valori)):
+#     if rezultat[i] == 1:
+#         indici_anomalii.append(i)
+# plt.plot(valori, label="serie timp")
+# plt.scatter(indici_anomalii, valori[indici_anomalii], color="red", s=10, label="anomalii")
+# plt.legend()
+# plt.savefig("IsolationForest_images/trasatura_Close.pdf", format="pdf")
+# plt.show()
 
 
 
