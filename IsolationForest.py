@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
 import time
+
 def IsolationForest(X, nr_arbori = 300, dim_subsecventa = 216, prag_anomalie = 0.64):
     print("Incepe antrenarea")
     start_time = time.time()
